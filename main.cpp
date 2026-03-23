@@ -6,19 +6,19 @@
 using namespace std;
 
 struct ServerCvor {
-    int id;
-    char naziv[50];
+    int id;              // ID servera
+    char naziv[50];      // Ime servera
     ServerCvor* sledeci;
 };
 
 struct VMCvor {
-    int id;
-    char ime[50];
-    char os[50];
-    int ram;
-    int cpu;
-    int serverId;
-    char korisnik[50];
+    int id;              // ID virtuelne masine
+    char ime[50];        // Ime Virtuelne masine
+    char os[50];         // Operativni sistem
+    int ram;             // RAM u GB
+    int cpu;             // Broj fizickih jezgara
+    int serverId;        // ID servera na kom se nalazi masine
+    char korisnik[50];   // Korisnik koji je napravio VM
     bool radi;           // Status VM-a (pokrenut/zaustavljen)
     char ip[20];         // IP adresa
     int diskSize;        // Veličina diska u GB
@@ -35,7 +35,7 @@ int sledeciIP = 100;     // Početna IP adresa za dodeljivanje
 //////////////////////////////////////////////////////////
 
 void procitajServereIzFajla() {
-    FILE* f = fopen("serveri.dat", "rb");
+    FILE* f = fopen("serveri.dat", "rb");   //Otvaranje fajla sa listom servera
     if (!f) {
         // Podrazumevani serveri
         ServerCvor* novi = new ServerCvor;
