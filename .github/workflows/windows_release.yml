@@ -1,0 +1,103 @@
+name: Auto-Build Windows Release - Dual Projects
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Preuzmi kod
+      uses: actions/checkout@v4
+
+    - name: Kompajliraj main.cpp sa MinGW
+      run: |
+        g++ main.cpp -o IaaS-System-Full-mingw.exe -static -static-libgcc -static-libstdc++ -std=c++17 -O2
+      shell: bash
+
+    - name: Kompajliraj main.cpp sa MSVC
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        cl /EHsc /std:c++17 /O2 /Fe:IaaS-System-Full-msvc.exe main.cpp
+      shell: cmd
+
+    - name: Kompajliraj main2.cpp sa MinGW
+      run: |
+        g++ main2.cpp -o IaaS-System-Light-mingw.exe -static -static-libgcc -static-libstdc++ -std=c++17 -O2
+      shell: bash
+
+    - name: Kompajliraj main2.cpp sa MSVC
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        cl /EHsc /std:c++17 /O2 /Fe:IaaS-System-Light-msvc.exe main2.cpp
+      shell: cmd
+
+    - name: Postavi tag
+      id: set_tag
+      run: echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Kreiraj Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.set_tag.outputs.RELEASE_TAG }}
+        name: IaaS Sistem ${{ steps.set_tag.outputs.RELEASE_TAG }}
+        body: |
+          # IaaS Sistem ${{ steps.set_tag.outputs.RELEASE_TAG }}
+          
+          ## Dostupni Izvršni Fajlovi:
+          
+          ### Potpuna Verzija (main.cpp):
+          - **IaaS-System-Full-mingw.exe** - Kompajlirano sa MinGW (statički linkovano, bez zavisnosti)
+          - **IaaS-System-Full-msvc.exe** - Kompajlirano sa MSVC (zahteva VC++ Redistributable)
+          
+          ### Lite Verzija (main2.cpp):
+          - **IaaS-System-Light-mingw.exe** - Kompajlirano sa MinGW (statički linkovano, bez zavisnosti)
+          - **IaaS-System-Light-msvc.exe** - Kompajlirano sa MSVC (zahteva VC++ Redistributable)
+          
+          ## Razlike Između Verzija:
+          
+          ### Potpuna Verzija (main.cpp)
+          Kompletan IaaS sistem sa:
+          - Konfiguracionim fajlovima
+          - Upravljanjem mrežom i IP dodelama
+          - Klasama za upravljanje skladištem
+          - Više cloud servera
+          - Upravljanje virtuelnim mašinama
+          - Autentifikacija korisnika
+          - Perzistencija podataka (.db fajlovi)
+          
+          ### Lite Verzija (main2.cpp)
+          Minimalni IaaS sistem sa:
+          - Osnovnim upravljanjem VM-ovima (kreiranje/brisanje/pokretanje/zaustavljanje)
+          - Perzistencijom podataka (binarni .dat fajlovi)
+          - Login/registracija sistemom
+          - Dodelom IP adresa
+          - Upravljanjem diskovnim prostorom
+          - Samo esencijalne funkcionalnosti
+          
+          ## Razlike Kompajlera:
+          - **MinGW verzije**: Statički linkovane, bez potrebe za dodatnim bibliotekama
+          - **MSVC verzije**: Zahtevaju Visual C++ Redistributable (može se preuzeti sa Microsoft sajta)
+          
+          ## Zajedničke Karakteristike:
+          - Strukture podataka 
+          - Operacije sa fajlovima
+          - Autentifikacija korisnika
+          - Upravljanje serverima i VM-ovima
+          - Osnovne IaaS funkcionalnosti
+          
+          Izaberite verziju na osnovu vaših potreba i podešavanja sistema.
+        files: |
+          IaaS-System-Full-mingw.exe
+          IaaS-System-Full-msvc.exe
+          IaaS-System-Light-mingw.exe
+          IaaS-System-Light-msvc.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
